@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 10 mais likes</title>
+    <script>
+        function teste(){
+            let url = "http://localhost:8080/maiscurtidas";
+            let req = new XMLHttpRequest();
+            req.open("GET", url, false);
+            req.send();
+            let res = JSON.parse(req.responseText);
+            let div = document.getElementById("oi")
+            let info = res.info;
+            info.map((json,indice)=>{
+                div.innerHTML +="<b>Mensagem:</b> "+ json.msg + "<br>";
+                div.innerHTML +="<b>Dia: </b>"+ json.data + "<br>";
+                div.innerHTML +="<b>Quantidades de Likes: </b>"+ json.likes + "<br>";
+                div.innerHTML +="<b>Usuario: </b>"+ json.user + "<br>"; 
+            });
+        }
+    </script>
+</head>
+<body onload="teste()">
+    <h1>Mensagem com mais curtidas: </h1> <br>
+    <div class="oi" id="oi"></div>
+    <b></b>
+</body>
+</html>

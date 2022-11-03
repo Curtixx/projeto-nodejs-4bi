@@ -4,12 +4,15 @@ const mysql = require("mysql");
 const app = express();
 const conexao = mysql.createConnection({host: "localhost", user: "root",
 password:"", database: "teste"});
+const Filter = require('bad-words');
+const filter = new Filter();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(express.json());
 let id_user = 0;
 let id_sala =0;
 let nome_user = "";
+
 
 app.get("/forms", function(req,res){
     res.sendFile(__dirname + "/login.html");
@@ -66,16 +69,16 @@ app.post("/criarSala", function(req,res){
 
 app.get("/sala", function(req,res){
 
-    let sql = `select * from salas_op;`;
+    let sql = `select * from salas;`;
     let json = { sucess: '', info: [], erro: '' };
     conexao.query(sql,function(err,result,fields){
         json.sucess = true;
         for(x in result){
             json.info.push({
-                id: result[x].id,
-                titulo: result[x].sala,
-                tema: result[x].tema,
-                descript: result[x].desc
+                idsala: result[x].idsalas,
+                nome: result[x].nomesalas,
+                desc: result[x].descricaosalas,
+                id_user: result[x].id_user
             });
         }
         res.json(json);
@@ -88,12 +91,18 @@ app.get("/sala/id:id", function(req,res){
 });
 app.get("/menssagens", function(req,res){
     let msg = req.query.txtMsg;
-    let values = [msg,id_sala,id_user, nome_user];
-    let sql = `insert into mensagem values (default,?,?,?,?)`
+    let data = new Date();
+    let dia = data.getDate().toString().padStart(2,'0');
+    let mes = (data.getMonth()+1).toString().padStart(2,'0');
+    let ano = data.getFullYear();
+    let dia_atual = `${dia}/${mes}/${ano}`
+    msg = msg.replace("buceta", "*").replace("merda", "*").replace("porra","*").replace("caralho","*").replace("crl","*").replace("krl","*").replace("filha da puta","*").replace("filho da puta","*").replace("puta","*").replace("arrombado", "*").replace("cuzao", "*").replace("cuzão", "*");
+    let values = [msg,id_sala,id_user, nome_user,dia_atual,0];
+    let sql = `insert into mensagem values (default,?,?,?,?,?,?)`
     conexao.query(sql,values);
 });
 app.get("/mostrarMsg", function(req,res){
-    let sql = `select textomsg,id_user,nome_user from mensagem where id_sala = ${id_sala}`;
+    let sql = `select textomsg,id_user,nome_user,data,idmensagem from mensagem where id_sala = ${id_sala}`;
     let json2 = { sucess: '', info: [], erro: '' };
     conexao.query(sql,function(err,result,fields){
         json2.sucess = true;
@@ -101,7 +110,9 @@ app.get("/mostrarMsg", function(req,res){
             json2.info.push({
                 msg: result[x].textomsg,
                 iduser: result[x].id_user,
-                user: result[x].nome_user
+                user: result[x].nome_user,
+                data: result[x].data,
+                id_msg: result[x].idmensagem
             });
         }
         res.json(json2);
@@ -109,5 +120,49 @@ app.get("/mostrarMsg", function(req,res){
     });
 });
 
+});
+app.post("/pesquisarSala", function(req,res){
+    let nome_sala = req.body.txtsala;
+    let sql = `select idsalas from salas where nomesalas = '${nome_sala}'`;
+    let json = { sucess: '', info: [], erro: '' };
+    conexao.query(sql,function(err,result,fields){
+        json.sucess = true;
+        for(x in result){
+            json.info.push({
+                id: result[x].idsalas
+            });
+        }
+        res.redirect("/sala/id"+result[0].idsalas);
+    });
+
+});
+app.get("/curtidas/:idmsg",function(req,res){
+    let id_msg = req.params.idmsg;
+
+    let sql = `update mensagem set likes = likes+1 where idmensagem = ${id_msg}`;
+    conexao.query(sql,function(err,result,fields){
+        
+    });
+
+});
+app.get("/maiscurtidas", function(req,res){
+    let sql = `select * from mensagem order by likes desc`
+    let json = { sucess: '', info: [], erro: '' };
+    conexao.query(sql,function(err,result,fields){
+        json.sucess = true;
+        for(x in result){
+            json.info.push({
+                likes: result[x].likes,
+                msg: result[x].textomsg,
+                user: result[x].nome_user,
+                data: result[x].data
+            });
+        }
+        res.json(json);
+        
+    });
+});
+app.get("/ranque",function(req,res){
+    res.sendFile(__dirname + "/maislikes.html");
 });
 app.listen(8080);

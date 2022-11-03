@@ -42,8 +42,8 @@
             let div = document.getElementById("msg");
             let info = res.info;
             info.map((json,indice)=>{
-                div.innerHTML += json.msg + " | user: " + json.user +"<br>";
-                
+                div.innerHTML +=`<b>${json.user}: </b>` + json.msg + " - " + json.data + "<br>";
+                div.innerHTML += "<a href=http://localhost:8080/curtidas/"+ json.id_msg+">Curtir</a> <br>"
             });
         }
 
@@ -57,7 +57,7 @@
         </form>
     </div>
     <div id="msg">
-
+<a href=""></a>
     </div>
 </body>
 </html>
